@@ -31,6 +31,10 @@
 #define        SOL_DCCP 269
 #endif
 
+#ifndef        DCCP_SOCKOPT_MULTIPATH
+#define        DCCP_SOCKOPT_MULTIPATH 18
+#endif
+
 int iperf_dccp_accept(struct iperf_test *);
 
 int iperf_dccp_recv(struct iperf_stream *);

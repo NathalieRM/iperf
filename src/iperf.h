@@ -169,6 +169,7 @@ struct iperf_settings
     int	      connect_timeout;	    /* socket connection timeout, in ms */
     int       idle_timeout;         /* server idle time timeout */
     struct iperf_time rcv_timeout;  /* Timeout for receiving messages in active mode, in us */
+    int       multipath;            /* Enable multipath support (DCCP) */
 };
 
 struct iperf_test;

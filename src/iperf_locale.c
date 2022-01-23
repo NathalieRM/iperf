@@ -151,6 +151,7 @@ const char usage_longstr[] = "Usage: iperf3 [-s|-c host] [options]\n"
 #endif /* HAVE_SCTP_H */
 #if defined(HAVE_DCCP_H)
                            "  --dccp                    use DCCP protocol\n"
+                           "  --multipath               enable multipath for DCCP\n"
 #endif /* HAVE_DCCP_H */
                            "  -u, --udp                 use UDP rather than TCP\n"
                            "  --connect-timeout #       timeout for control connection setup (ms)\n"

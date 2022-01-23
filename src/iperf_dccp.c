@@ -357,6 +357,18 @@ iperf_dccp_listen(struct iperf_test *test)
         return -1;
     }
 
+    if ((opt = test->settings->multipath)) {
+        int saved_errno;
+        if (setsockopt(s, SOL_DCCP, DCCP_SOCKOPT_MULTIPATH, &opt, sizeof(opt)) < 0) {
+            saved_errno = errno;
+            close(s);
+            freeaddrinfo(res);
+            errno = saved_errno;
+            i_errno = IEMULTIPATH;
+            return -1;
+        }
+    }
+
     if (bind(s, (struct sockaddr *) res->ai_addr, res->ai_addrlen) < 0) {
         saved_errno = errno;
         close(s);
@@ -415,6 +427,18 @@ iperf_dccp_connect(struct iperf_test *test)
         }
     }
 
+
+    if ((opt = test->settings->multipath)) {
+        int saved_errno;
+        if (setsockopt(s, SOL_DCCP, DCCP_SOCKOPT_MULTIPATH, &opt, sizeof(opt)) < 0) {
+            saved_errno = errno;
+            close(s);
+            freeaddrinfo(server_res);
+            errno = saved_errno;
+            i_errno = IEMULTIPATH;
+            return -1;
+        }
+    }
 
     if (connect(s, (struct sockaddr *) server_res->ai_addr, server_res->ai_addrlen) < 0 && errno != EINPROGRESS) {
         saved_errno = errno;

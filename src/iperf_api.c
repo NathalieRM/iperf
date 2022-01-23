@@ -1038,6 +1038,7 @@ iperf_parse_arguments(struct iperf_test *test, int argc, char **argv)
 #endif
 #if defined(HAVE_DCCP_H)
         {"dccp", no_argument, NULL, OPT_DCCP},
+        {"multipath", no_argument, NULL, OPT_MULTIPATH},
 #endif
 	{"pidfile", required_argument, NULL, 'I'},
 	{"logfile", required_argument, NULL, OPT_LOGFILE},
@@ -1200,6 +1201,15 @@ iperf_parse_arguments(struct iperf_test *test, int argc, char **argv)
                 i_errno = IEUNIMP;
                 return -1;
 #endif /* HAVE_DCCP_H */
+            case OPT_MULTIPATH:
+#if defined(linux)
+                test->settings->multipath = 1;
+                client_flag = 1;
+                break;
+#else /* linux */
+                i_errno = IEUNIMP;
+                return -1;
+#endif /* linux */
             case 'b':
 		slash = strchr(optarg, '/');
 		if (slash) {
@@ -2094,6 +2104,8 @@ send_parameters(struct iperf_test *test)
 	    cJSON_AddTrueToObject(j, "sctp");
 	else if (test->protocol->id == Pdccp)
 	    cJSON_AddTrueToObject(j, "dccp");
+	if (test->settings->multipath)
+	    cJSON_AddTrueToObject(j, "multipath");
 	cJSON_AddNumberToObject(j, "omit", test->omit);
 	if (test->server_affinity != -1)
 	    cJSON_AddNumberToObject(j, "server_affinity", test->server_affinity);
@@ -2207,6 +2219,8 @@ get_parameters(struct iperf_test *test)
 	    set_protocol(test, Psctp);
 	if ((j_p = cJSON_GetObjectItem(j, "dccp")) != NULL)
 	    set_protocol(test, Pdccp);
+	if ((j_p = cJSON_GetObjectItem(j, "multipath")) != NULL)
+	    test->settings->multipath = 1;
 	if ((j_p = cJSON_GetObjectItem(j, "omit")) != NULL)
 	    test->omit = j_p->valueint;
 	if ((j_p = cJSON_GetObjectItem(j, "server_affinity")) != NULL)
