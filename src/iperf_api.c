@@ -79,6 +79,9 @@
 #if defined(HAVE_SCTP_H)
 #include "iperf_sctp.h"
 #endif /* HAVE_SCTP_H */
+#if defined(HAVE_DCCP_H)
+#include "iperf_dccp.h"
+#endif /* HAVE_DCCP_H */
 #include "timer.h"
 
 #include "cjson.h"
@@ -1033,6 +1036,9 @@ iperf_parse_arguments(struct iperf_test *test, int argc, char **argv)
         {"nstreams", required_argument, NULL, OPT_NUMSTREAMS},
         {"xbind", required_argument, NULL, 'X'},
 #endif
+#if defined(HAVE_DCCP_H)
+        {"dccp", no_argument, NULL, OPT_DCCP},
+#endif
 	{"pidfile", required_argument, NULL, 'I'},
 	{"logfile", required_argument, NULL, OPT_LOGFILE},
 	{"forceflush", no_argument, NULL, OPT_FORCEFLUSH},
@@ -1185,6 +1191,15 @@ iperf_parse_arguments(struct iperf_test *test, int argc, char **argv)
                 i_errno = IEUNIMP;
                 return -1;
 #endif /* linux */
+            case OPT_DCCP:
+#if defined(HAVE_DCCP_H)
+                set_protocol(test, Pdccp);
+                client_flag = 1;
+                break;
+#else /* HAVE_DCCP_H */
+                i_errno = IEUNIMP;
+                return -1;
+#endif /* HAVE_DCCP_H */
             case 'b':
 		slash = strchr(optarg, '/');
 		if (slash) {
@@ -1615,6 +1630,8 @@ iperf_parse_arguments(struct iperf_test *test, int argc, char **argv)
 	    blksize = 0;	/* try to dynamically determine from MSS */
 	else if (test->protocol->id == Psctp)
 	    blksize = DEFAULT_SCTP_BLKSIZE;
+	else if (test->protocol->id == Pdccp)
+	    blksize = DEFAULT_DCCP_BLKSIZE;
 	else
 	    blksize = DEFAULT_TCP_BLKSIZE;
     }
@@ -2073,8 +2090,10 @@ send_parameters(struct iperf_test *test)
 	    cJSON_AddTrueToObject(j, "tcp");
 	else if (test->protocol->id == Pudp)
 	    cJSON_AddTrueToObject(j, "udp");
-        else if (test->protocol->id == Psctp)
-            cJSON_AddTrueToObject(j, "sctp");
+	else if (test->protocol->id == Psctp)
+	    cJSON_AddTrueToObject(j, "sctp");
+	else if (test->protocol->id == Pdccp)
+	    cJSON_AddTrueToObject(j, "dccp");
 	cJSON_AddNumberToObject(j, "omit", test->omit);
 	if (test->server_affinity != -1)
 	    cJSON_AddNumberToObject(j, "server_affinity", test->server_affinity);
@@ -2184,8 +2203,10 @@ get_parameters(struct iperf_test *test)
 	    set_protocol(test, Ptcp);
 	if ((j_p = cJSON_GetObjectItem(j, "udp")) != NULL)
 	    set_protocol(test, Pudp);
-        if ((j_p = cJSON_GetObjectItem(j, "sctp")) != NULL)
-            set_protocol(test, Psctp);
+	if ((j_p = cJSON_GetObjectItem(j, "sctp")) != NULL)
+	    set_protocol(test, Psctp);
+	if ((j_p = cJSON_GetObjectItem(j, "dccp")) != NULL)
+	    set_protocol(test, Pdccp);
 	if ((j_p = cJSON_GetObjectItem(j, "omit")) != NULL)
 	    test->omit = j_p->valueint;
 	if ((j_p = cJSON_GetObjectItem(j, "server_affinity")) != NULL)
@@ -2712,6 +2733,10 @@ iperf_defaults(struct iperf_test *testp)
     struct protocol *sctp;
 #endif /* HAVE_SCTP_H */
 
+#if defined(HAVE_DCCP_H)
+    struct protocol *dccp;
+#endif /* HAVE_DCCP_H */
+
     testp->omit = OMIT;
     testp->duration = DURATION;
     testp->diskfile_name = (char*) 0;
@@ -2815,6 +2840,33 @@ iperf_defaults(struct iperf_test *testp)
 
     SLIST_INSERT_AFTER(udp, sctp, protocols);
 #endif /* HAVE_SCTP_H */
+
+#if defined(HAVE_DCCP_H)
+    dccp = protocol_new();
+    if (!dccp) {
+        protocol_free(tcp);
+        protocol_free(udp);
+#if defined(HAVE_SCTP_H)
+        protocol_free(sctp);
+#endif /* HAVE_SCTP_H */
+        return -1;
+    }
+
+    dccp->id = Pdccp;
+    dccp->name = "DCCP";
+    dccp->accept = iperf_dccp_accept;
+    dccp->listen = iperf_dccp_listen;
+    dccp->connect = iperf_dccp_connect;
+    dccp->send = iperf_dccp_send;
+    dccp->recv = iperf_dccp_recv;
+    dccp->init = iperf_dccp_init;
+
+#if defined(HAVE_SCTP_H)
+    SLIST_INSERT_AFTER(sctp, dccp, protocols);
+#else /* HAVE_SCTP_H */
+    SLIST_INSERT_AFTER(udp, dccp, protocols);
+#endif /* HAVE_SCTP_H */
+#endif /* HAVE_DCCP_H */
 
     testp->on_new_stream = iperf_on_new_stream;
     testp->on_test_start = iperf_on_test_start;

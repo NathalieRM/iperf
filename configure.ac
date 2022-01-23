@@ -108,6 +108,8 @@ AC_ARG_WITH([sctp],
     ]
 )
 
+
+
 AC_CHECK_HEADERS([linux/tcp.h])
 
 # Check for SCTP support
@@ -123,6 +125,36 @@ AC_CHECK_HEADERS([netinet/sctp.h],
 #include <sys/socket.h>
 #endif
 ])
+fi
+
+# DCCP.  Allow user to disable DCCP support with --without-dccp.
+# Otherwise we try to find whatever support is required.
+try_dccp=true
+AC_ARG_WITH([dccp],
+    [AS_HELP_STRING([--without-dccp],
+        [disable DCCP])],
+    [
+        case "$withval" in
+	y | ye | yes)
+	  ;;
+	n | no)
+	try_dccp=false
+	  ;;
+	*)
+	AC_MSG_ERROR([Invalid --with-dccp value])
+	  ;;
+	esac
+    ], [
+        try_dccp=true
+    ]
+)
+
+# Check for DCCP support
+if $try_dccp; then
+AC_CHECK_HEADER([linux/dccp.h],
+		 AC_DEFINE([HAVE_DCCP_H], [1], [Have DCCP support.])
+		 [],
+		 [])
 fi
 
 AC_CHECK_HEADER([endian.h],

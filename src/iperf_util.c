@@ -277,6 +277,16 @@ get_optional_features(void)
     numfeatures++;
 #endif /* HAVE_SCTP_H */
 
+#if defined(HAVE_DCCP_H)
+    if (numfeatures > 0) {
+	strncat(features, ", ",
+		sizeof(features) - strlen(features) - 1);
+    }
+    strncat(features, "DCCP",
+	sizeof(features) - strlen(features) - 1);
+    numfeatures++;
+#endif /* HAVE_DCCP_H */
+
 #if defined(HAVE_TCP_CONGESTION)
     if (numfeatures > 0) {
 	strncat(features, ", ",

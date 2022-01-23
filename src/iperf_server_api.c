@@ -693,7 +693,7 @@ iperf_run_server(struct iperf_test *test)
 
 
                 if (rec_streams_accepted == streams_to_rec && send_streams_accepted == streams_to_send) {
-                    if (test->protocol->id != Ptcp) {
+                    if ((test->protocol->id != Ptcp) && (test->protocol->id != Pdccp)) {
                         FD_CLR(test->prot_listener, &test->read_set);
                         close(test->prot_listener);
                     } else {
