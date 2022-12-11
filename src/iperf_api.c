@@ -3108,6 +3108,7 @@ iperf_reset_test(struct iperf_test *test)
     test->settings->mss = 0;
     test->settings->tos = 0;
     test->settings->dont_fragment = 0;
+    test->settings->multipath = 0;
     test->zerocopy = 0;
 
 #if defined(HAVE_SSL)
