@@ -93,6 +93,7 @@ typedef uint64_t iperf_size_t;
 #define OPT_RCV_TIMEOUT 27
 #define OPT_DCCP 28
 #define OPT_MULTIPATH 29
+#define OPT_FAST_CLOSE 30
 
 /* states */
 #define TEST_START 1

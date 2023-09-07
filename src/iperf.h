@@ -170,6 +170,7 @@ struct iperf_settings
     int       idle_timeout;         /* server idle time timeout */
     struct iperf_time rcv_timeout;  /* Timeout for receiving messages in active mode, in us */
     int       multipath;            /* Enable multipath support (DCCP) */
+    int       fastclose;
 };
 
 struct iperf_test;
