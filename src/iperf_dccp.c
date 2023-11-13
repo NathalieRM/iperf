@@ -459,6 +459,9 @@ iperf_dccp_connect(struct iperf_test *test)
         return -1;
     }
 
+    if ((opt = test->settings->fastclose))
+        setsockopt(s, SOL_DCCP, 23, &opt, sizeof(opt));
+
     freeaddrinfo(server_res);
     return s;
 #else
